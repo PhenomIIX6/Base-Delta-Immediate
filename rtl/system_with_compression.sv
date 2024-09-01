@@ -11,11 +11,11 @@ module system_with_compression
     logic read_hit;
     logic cache_hit_stall;
     logic [31:0] read_word;
-    logic [19:0] read_tag;
+    logic [18:0] read_tag;
     logic [6:0] read_index;
     logic [9:0] write_index;
-    logic [2:0] read_word_addr;
-    logic [1 + 20 + 256-1:0] write_cacheline;
+    logic [3:0] read_word_addr;
+    logic [2 + 19 + 256-1:0] write_cacheline;
     logic [31:0] memory_addr;
     logic memory_write_en;
     logic [31:0] memory_write_data;
@@ -26,6 +26,8 @@ module system_with_compression
     logic write_on_demand;
     logic write_word_valid;
     logic [9:0] cache_read_cacheline_index10;
+    logic [31:0] read_base_one_hot;
+    logic [7:0] read_compressed_mode;
 
     cache cache (
         .clk                        (clk                    ),
@@ -40,7 +42,9 @@ module system_with_compression
         .cache_read_word_addr       (read_word_addr         ),   
         .cache_read_hit             (read_hit               ),
         .cache_read_word_data       (read_word              ),
-        .cache_read_cacheline_index10(cache_read_cacheline_index10)
+        .cache_read_cacheline_index10(cache_read_cacheline_index10),
+        .cache_read_base_one_hot    (read_base_one_hot      ),
+        .cache_read_compressed_mode (read_compressed_mode   )        
     );
 
     cache_controller cache_controller (
@@ -57,6 +61,8 @@ module system_with_compression
         .read_index                 (read_index         ),    
         .read_word_addr             (read_word_addr     ),
         .read_cacheline_index10     (cache_read_cacheline_index10),
+        .read_compressed_mode       (read_compressed_mode),
+        .read_base_one_hot          (read_base_one_hot  ),
         .write_index                (write_index        ),
         .write_cacheline            (write_cacheline    ),
         .write_on_demand            (write_on_demand    ),

@@ -15,6 +15,10 @@ if __name__ == "__main__":
     if hdl_toplevel_lang == "verilog":
         verilog_sources = [proj_path / "rtl" / "cache_controller.sv",
                            proj_path / "rtl" / "cache.sv",
+                           proj_path / "rtl" / "little_compressor.sv",
+                           proj_path / "rtl" / "compressor.sv",
+                           proj_path / "rtl" / "little_decompressor.sv",
+                           proj_path / "rtl" / "decompressor.sv",
                            proj_path / "rtl" / "lru.sv",
                            proj_path / "rtl" / "main_memory.sv",
                            proj_path / "rtl" / "system_with_compression.sv"]
