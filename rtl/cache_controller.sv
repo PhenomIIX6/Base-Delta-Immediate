@@ -15,7 +15,7 @@ module cache_controller
     input  logic                                    request_op_read,        // Request operation type: read or write?
     output logic [WORD_WIDTH-1:0]                   request_read_word,      // Word from cache
     input  logic [WORD_WIDTH-1:0]                   request_write_word,     // Word to write in cache
-    output logic                                    cache_hit_stall,
+    output logic                                    request_cache_hit,      // Cache hit
     
     // Cache_controller <-> Cache intf
     input  logic                                    read_hit,
@@ -45,6 +45,7 @@ module cache_controller
     logic [2:0] cache_on_demand_fill_counter;
 
     logic [9:0] write_index_lru;
+    logic       cache_hit_stall;
 
     always_ff @(posedge clk, negedge rst) // LRU counter increment
     begin
@@ -150,4 +151,12 @@ module cache_controller
     assign read_word_addr    = request_address[4:2];
     assign read_tag          = request_address[31:12];
     assign read_index        = request_address[11:5];
+
+    always_ff @(posedge clk, negedge rst)
+    begin
+        if(!rst)                request_cache_hit <= 0;
+        else if  (request_cache_hit)    request_cache_hit <= 0;
+        else                    request_cache_hit <= (request_op_read & !cache_hit_stall) ? read_hit : 0;
+    end
+
 endmodule
