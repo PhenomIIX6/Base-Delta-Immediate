@@ -124,7 +124,7 @@ module cache_controller
             end
         end
         else if(!request_op_read) begin
-            cache_hit_stall     <= 1;
+            cache_hit_stall     <= read_hit;
             write_on_demand     <= 0;
             memory_addr         <= request_address >> 2; 
             memory_write_data   <= request_write_word;
@@ -154,9 +154,9 @@ module cache_controller
 
     always_ff @(posedge clk, negedge rst)
     begin
-        if(!rst)                request_cache_hit <= 0;
+        if(!rst)                        request_cache_hit <= 0;
         else if  (request_cache_hit)    request_cache_hit <= 0;
-        else                    request_cache_hit <= (request_op_read & !cache_hit_stall) ? read_hit : 0;
+        else                            request_cache_hit <= (request_op_read & !cache_hit_stall) ? read_hit : 0;
     end
 
 endmodule

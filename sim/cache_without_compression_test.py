@@ -35,10 +35,7 @@ async def wait_write_en(dut):
     while(dut.cache_controller.memory_write_en == 0):
         await RisingEdge(dut.clk)
 
-# async def cache_hit_rate(dut):
-#     cocotb.log.info("Cache hit rate: %f" % cache_hit_rate)
-
-#@cocotb.test()
+@cocotb.test()
 async def random_test_two_line(dut):
     await memory_load(dut)
     cocotb.start_soon(clk_generate(dut, clk_period))
@@ -63,29 +60,28 @@ async def random_test_two_line(dut):
         dut.address.value = random.randint(0, 46)
         dut.op_rd.value = 1
         await wait_correct_rdata(dut)
-    for _ in range(600):
+    for _ in range(6000):
         dut.address.value = random.randint(0, 46)
         dut.op_rd.value = random.randint(0, 1)
         dut.wdata.value = random.randint(-1000, 1000)
         await RisingEdge(dut.clk)
         await RisingEdge(dut.clk)
 
-@cocotb.test()
+# @cocotb.test()
 async def full_random_test(dut):
     await memory_load(dut)
     cocotb.start_soon(clk_generate(dut, clk_period))
     cocotb.start_soon(rst_generate(dut, clk_period))
-    for _ in range(20000):
+    for _ in range(10000):
         dut.address.value = random.randint(0, 2 ** 15) 
         dut.op_rd.value = 1
         await wait_correct_rdata(dut)
-    # for _ in range(10000):
-    #     dut.address.value = random.randint(0, 2 ** 15)
-    #     dut.op_rd.value = 0
-    #     dut.wdata.value = random.randint(-1000, 1000)
-    #     await wait_write_en(dut)
-    # for _ in range(10000):
-    #     dut.address.value = random.randint(0, 2 ** 15) 
-    #     dut.op_rd.value = 1
-    #     await wait_correct_rdata(dut)
-    # await cache_hit_rate(dut)
+    for _ in range(10000):
+        dut.address.value = random.randint(0, 2 ** 15)
+        dut.op_rd.value = 0
+        dut.wdata.value = random.randint(-1000, 1000)
+        await wait_write_en(dut)
+    for _ in range(10000):
+        dut.address.value = random.randint(0, 2 ** 15) 
+        dut.op_rd.value = 1
+        await wait_correct_rdata(dut)
