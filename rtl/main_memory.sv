@@ -44,6 +44,7 @@ module main_memory
             if(read_ready & read_addr_valid) begin
                 read_data  <= mem[read_addr];
                 read_valid <= read_addr_valid;
+                read_ready <= 0;
             end 
             else read_valid <= 0;
         end

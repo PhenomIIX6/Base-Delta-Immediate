@@ -17,7 +17,6 @@ module decompressor
     input  logic [7:0]                  compressed_mode,
     input  logic [31:0]                 base_one_hot,
     input  logic                        cacheline_select_signal,
-    input  logic [1:0]                  cacheline_valid_signal,
     
     output logic [8 * WORD_WIDTH-1:0]   decompressed_data
 );

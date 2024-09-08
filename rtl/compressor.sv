@@ -50,15 +50,15 @@ module compressor
 
     always_comb
     begin
-        compressed_valid = 'b0;
+        compressed_valid = 2'b11;
         if((cacheline_ls_compressed_mode == NO_COMPR_CODE) | (cacheline_ms_compressed_mode == NO_COMPR_CODE)) begin
             if(request_address[5]) begin
                 compressed_data = cacheline_ms_compressed_data;
-                compressed_valid[1] = 1;
+                compressed_valid = 2'b10;
             end
             else begin
                 compressed_data = cacheline_ls_compressed_data;
-                compressed_valid[0] = 1;
+                compressed_valid = 2'b01;
             end
         end
         else begin
@@ -78,11 +78,11 @@ module compressor
                             default: begin
                                 if(request_address[5]) begin
                                     compressed_data = cacheline_ms_compressed_data;
-                                    compressed_valid[1] = 1;
+                                    compressed_valid = 2'b10;
                                 end
                                 else begin
                                     compressed_data = cacheline_ls_compressed_data;
-                                    compressed_valid[0] = 1;
+                                    compressed_valid = 2'b01;
                                 end
                             end
                         endcase
@@ -102,11 +102,11 @@ module compressor
                             default: begin
                                 if(request_address[5]) begin
                                     compressed_data = cacheline_ms_compressed_data;
-                                    compressed_valid[1] = 1;
+                                    compressed_valid = 2'b10;
                                 end
                                 else begin
                                     compressed_data = cacheline_ls_compressed_data;
-                                    compressed_valid[0] = 1;
+                                    compressed_valid = 2'b01;
                                 end
                             end
                         endcase
@@ -125,11 +125,11 @@ module compressor
                             default: begin
                                 if(request_address[5]) begin
                                     compressed_data = cacheline_ms_compressed_data;
-                                    compressed_valid[1] = 1;
+                                    compressed_valid = 2'b10;
                                 end
                                 else begin
                                     compressed_data = cacheline_ls_compressed_data;
-                                    compressed_valid[0] = 1;
+                                    compressed_valid = 2'b01;
                                 end
                             end
                         endcase
@@ -148,11 +148,11 @@ module compressor
                             default: begin
                                 if(request_address[5]) begin
                                     compressed_data = cacheline_ms_compressed_data;
-                                    compressed_valid[1] = 1;
+                                    compressed_valid = 2'b10;
                                 end
                                 else begin
                                     compressed_data = cacheline_ls_compressed_data;
-                                    compressed_valid[0] = 1;
+                                    compressed_valid = 2'b01;
                                 end
                             end
                         endcase
@@ -169,11 +169,11 @@ module compressor
                             default: begin
                                 if(request_address[5]) begin
                                     compressed_data = cacheline_ms_compressed_data;
-                                    compressed_valid[1] = 1;
+                                    compressed_valid = 2'b10;
                                 end
                                 else begin
                                     compressed_data = cacheline_ls_compressed_data;
-                                    compressed_valid[0] = 1;
+                                    compressed_valid = 2'b01;
                                 end
                             end
                         endcase
@@ -189,11 +189,11 @@ module compressor
                             default: begin
                                 if(request_address[5]) begin
                                     compressed_data = cacheline_ms_compressed_data;
-                                    compressed_valid[1] = 1;
+                                    compressed_valid = 2'b10;
                                 end
                                 else begin
                                     compressed_data = cacheline_ls_compressed_data;
-                                    compressed_valid[0] = 1;
+                                    compressed_valid = 2'b01;
                                 end
                             end
                         endcase
@@ -209,11 +209,11 @@ module compressor
                             default: begin
                                 if(request_address[5]) begin
                                     compressed_data = cacheline_ms_compressed_data;
-                                    compressed_valid[1] = 1;
+                                    compressed_valid = 2'b10;
                                 end
                                 else begin
                                     compressed_data = cacheline_ls_compressed_data;
-                                    compressed_valid[0] = 1;
+                                    compressed_valid = 2'b01;
                                 end
                             end
                         endcase
@@ -227,19 +227,25 @@ module compressor
                             default: begin
                                 if(request_address[5]) begin
                                     compressed_data = cacheline_ms_compressed_data;
-                                    compressed_valid[1] = 1;
+                                    compressed_valid = 2'b10;
                                 end
                                 else begin
                                     compressed_data = cacheline_ls_compressed_data;
-                                    compressed_valid[0] = 1;
+                                    compressed_valid = 2'b01;
                                 end
                             end
                         endcase
                     end
                 default: 
                     begin
-                        if(request_address[5])  compressed_data = cacheline_ms_compressed_data;
-                        else                    compressed_data = cacheline_ls_compressed_data;
+                        if(request_address[5]) begin
+                                compressed_data = cacheline_ms_compressed_data;
+                                compressed_valid = 2'b10;
+                        end
+                        else begin
+                                compressed_data = cacheline_ls_compressed_data;
+                                compressed_valid = 2'b01;
+                        end
                     end
             endcase
         end

@@ -111,7 +111,20 @@ module cache_controller
             cache_hit_stall                 <= 0;
             two_cacheline_data_valid        <= 0;
         end
+        else if(two_cacheline_data_valid) begin
+            write_on_demand             <= 1;
+            write_index                 <= write_index_lru;
+            two_cacheline_data_valid    <= 0;
+            write_cacheline[2 + TAG_FIELD + DATA_FIELD-1:TAG_FIELD + DATA_FIELD]    <= compressed_valid;
+            write_cacheline[8 * WORD_WIDTH-1:0]                                     <= compressed_data;
+            write_cacheline[TAG_FIELD + DATA_FIELD-1:DATA_FIELD]                    <= request_address[31:13];
+            cache_dir_state[write_index_lru][8+32+4-1:32+4]                         <= compressed_mode;
+            cache_dir_state[write_index_lru][32+4-1:4]                              <= base_one_hot;
+            cache_on_demand_read_counter    <= 0;
+            cache_on_demand_fill_counter    <= 0;  
+        end
         else if(request_op_read & !read_hit ) begin
+            write_on_demand                 <= 0;
             cache_hit_stall                 <= 0;
             memory_write_en                 <= 0;
             write_word_valid                <= 0;
@@ -145,19 +158,9 @@ module cache_controller
                 endcase
                 cache_on_demand_fill_counter <= cache_on_demand_fill_counter + 1;
             end
-            if(two_cacheline_data_valid) begin
-                write_on_demand             <= 1;
-                write_index                 <= write_index_lru;
-                two_cacheline_data_valid    <= 0;
-                write_cacheline[2 + TAG_FIELD + DATA_FIELD-1:TAG_FIELD + DATA_FIELD]    <= compressed_valid;
-                write_cacheline[8 * WORD_WIDTH-1:0]                                     <= compressed_data;
-                write_cacheline[TAG_FIELD + DATA_FIELD-1:DATA_FIELD]                    <= request_address[31:13];
-                cache_dir_state[write_index_lru][8+32+4-1:32+4]                         <= compressed_mode;
-                cache_dir_state[write_index_lru][32+4-1:4]                              <= base_one_hot; 
-            end
         end
         else if(!request_op_read) begin
-            cache_hit_stall     <= 1;
+            cache_hit_stall     <= read_hit;
             write_on_demand     <= 0;
             memory_addr         <= request_address >> 2; 
             memory_write_data   <= request_write_word;

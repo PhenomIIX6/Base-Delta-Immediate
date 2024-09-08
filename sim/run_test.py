@@ -28,7 +28,7 @@ if __name__ == "__main__":
     runner.build(
     verilog_sources = verilog_sources,
     vhdl_sources = vhdl_sources,
-    hdl_toplevel = "system_witht_compression",
+    hdl_toplevel = "system_with_compression",
     always = True,
     )
 

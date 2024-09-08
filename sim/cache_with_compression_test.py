@@ -22,7 +22,7 @@ async def rst_generate(dut, clk_period):
 #load memory random data
 async def memory_load(dut):
     for i in range(0, 2 ** 15 + 1):
-        dut.main_memory.mem[i].value = random.randint(-100, 100)
+        dut.main_memory.mem[i].value = i
 
 async def wait_correct_rdata(dut):
     await RisingEdge(dut.clk)
@@ -73,8 +73,8 @@ async def full_random_test(dut):
     await memory_load(dut)
     cocotb.start_soon(clk_generate(dut, clk_period))
     cocotb.start_soon(rst_generate(dut, clk_period))
-    for _ in range(20000):
-        dut.address.value = random.randint(0, 2 ** 15)
+    for _ in range(40000):
+        dut.address.value = random.randint(0, 2 ** 16)
         dut.op_rd.value = 1
         await wait_correct_rdata(dut)
     # for _ in range(10000):

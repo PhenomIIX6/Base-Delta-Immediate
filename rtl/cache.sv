@@ -48,42 +48,58 @@ module cache
     begin
         cache_read_cacheline_index10 = 'b0;
         cache_read_cacheline         = 'b0;
-        if      (cache_read_tag == cache[cache_read_index           ][TAG_FIELD + DATA_FIELD-1:DATA_FIELD])  
+        if      (cache_read_tag == cache[cache_read_index           ][TAG_FIELD + DATA_FIELD-1:DATA_FIELD] & 
+                (cache[cache_read_index][1 + TAG_FIELD + DATA_FIELD-1] == 1 & !cache_read_word_addr[3] | 
+                (cache[cache_read_index][2 + TAG_FIELD + DATA_FIELD-1] == 1 & cache_read_word_addr[3])))  
         begin 
             cache_read_cacheline_index10 = cache_read_index;
             cache_read_cacheline = cache[cache_read_cacheline_index10];
         end
-        else if (cache_read_tag == cache[cache_read_index + 10'h0_80][TAG_FIELD + DATA_FIELD-1:DATA_FIELD]) 
+        else if (cache_read_tag == cache[cache_read_index + 10'h0_80][TAG_FIELD + DATA_FIELD-1:DATA_FIELD] &
+                (cache[cache_read_index + 10'h0_80][1 + TAG_FIELD + DATA_FIELD-1] == 1 & !cache_read_word_addr[3] | 
+                (cache[cache_read_index + 10'h0_80][2 + TAG_FIELD + DATA_FIELD-1] == 1 & cache_read_word_addr[3])))  
         begin  
             cache_read_cacheline_index10 = cache_read_index + 10'h0_80;
             cache_read_cacheline = cache[cache_read_cacheline_index10]; 
         end
-        else if (cache_read_tag == cache[cache_read_index + 10'h1_00][TAG_FIELD + DATA_FIELD-1:DATA_FIELD])  
+        else if (cache_read_tag == cache[cache_read_index + 10'h1_00][TAG_FIELD + DATA_FIELD-1:DATA_FIELD] &
+                (cache[cache_read_index + 10'h1_00][1 + TAG_FIELD + DATA_FIELD-1] == 1 & !cache_read_word_addr[3] | 
+                (cache[cache_read_index + 10'h1_00][2 + TAG_FIELD + DATA_FIELD-1] == 1 & cache_read_word_addr[3])))  
         begin
             cache_read_cacheline_index10 = cache_read_index + 10'h1_00;
             cache_read_cacheline = cache[cache_read_cacheline_index10];
         end
-        else if (cache_read_tag == cache[cache_read_index + 10'h1_80][TAG_FIELD + DATA_FIELD-1:DATA_FIELD])  
+        else if (cache_read_tag == cache[cache_read_index + 10'h1_80][TAG_FIELD + DATA_FIELD-1:DATA_FIELD] &
+                (cache[cache_read_index + 10'h1_80][1 + TAG_FIELD + DATA_FIELD-1] == 1 & !cache_read_word_addr[3] | 
+                (cache[cache_read_index + 10'h1_80][2 + TAG_FIELD + DATA_FIELD-1] == 1 & cache_read_word_addr[3])))   
         begin
             cache_read_cacheline_index10 = cache_read_index + 10'h1_80;
             cache_read_cacheline = cache[cache_read_cacheline_index10];
         end
-        else if (cache_read_tag == cache[cache_read_index + 10'h2_00][TAG_FIELD + DATA_FIELD-1:DATA_FIELD])  
+        else if (cache_read_tag == cache[cache_read_index + 10'h2_00][TAG_FIELD + DATA_FIELD-1:DATA_FIELD] &
+                (cache[cache_read_index + 10'h2_00][1 + TAG_FIELD + DATA_FIELD-1] == 1 & !cache_read_word_addr[3] | 
+                (cache[cache_read_index + 10'h2_00][2 + TAG_FIELD + DATA_FIELD-1] == 1 & cache_read_word_addr[3])))    
         begin
             cache_read_cacheline_index10 = cache_read_index + 10'h2_00;
             cache_read_cacheline = cache[cache_read_cacheline_index10];
         end
-        else if (cache_read_tag == cache[cache_read_index + 10'h2_80][TAG_FIELD + DATA_FIELD-1:DATA_FIELD])  
+        else if (cache_read_tag == cache[cache_read_index + 10'h2_80][TAG_FIELD + DATA_FIELD-1:DATA_FIELD] &
+                (cache[cache_read_index + 10'h2_80][1 + TAG_FIELD + DATA_FIELD-1] == 1 & !cache_read_word_addr[3] | 
+                (cache[cache_read_index + 10'h2_80][2 + TAG_FIELD + DATA_FIELD-1] == 1 & cache_read_word_addr[3])))    
         begin
             cache_read_cacheline_index10 = cache_read_index + 10'h2_80;
             cache_read_cacheline = cache[cache_read_cacheline_index10];
         end
-        else if (cache_read_tag == cache[cache_read_index + 10'h3_00][TAG_FIELD + DATA_FIELD-1:DATA_FIELD])  
+        else if (cache_read_tag == cache[cache_read_index + 10'h3_00][TAG_FIELD + DATA_FIELD-1:DATA_FIELD] &
+                (cache[cache_read_index + 10'h3_00][1 + TAG_FIELD + DATA_FIELD-1] == 1 & !cache_read_word_addr[3] | 
+                (cache[cache_read_index + 10'h3_00][2 + TAG_FIELD + DATA_FIELD-1] == 1 & cache_read_word_addr[3])))    
         begin
             cache_read_cacheline_index10 = cache_read_index + 10'h3_00;
             cache_read_cacheline = cache[cache_read_cacheline_index10];
         end
-        else if (cache_read_tag == cache[cache_read_index + 10'h3_80][TAG_FIELD + DATA_FIELD-1:DATA_FIELD])  
+        else if (cache_read_tag == cache[cache_read_index + 10'h3_80][TAG_FIELD + DATA_FIELD-1:DATA_FIELD] &
+                (cache[cache_read_index + 10'h3_80][1 + TAG_FIELD + DATA_FIELD-1] == 1 & !cache_read_word_addr[3] | 
+                (cache[cache_read_index + 10'h3_80][2 + TAG_FIELD + DATA_FIELD-1] == 1 & cache_read_word_addr[3])))    
         begin
             cache_read_cacheline_index10 = cache_read_index + 10'h3_80;
             cache_read_cacheline = cache[cache_read_cacheline_index10];
@@ -108,7 +124,7 @@ module cache
     always_comb 
     begin
         cache_read_word_data = 'b0;
-        case(cache_read_word_addr) 
+        case(cache_read_word_addr[2:0]) 
             3'b000: cache_read_word_data     = decompressed_data[31:0];
             3'b001: cache_read_word_data     = decompressed_data[63:32];
             3'b010: cache_read_word_data     = decompressed_data[95:64];

@@ -44,7 +44,7 @@ module little_decompressor
         end
         for(int i = 0; i < 8; i++) begin
             b4d1_segments[i] = compressed_data[i*8+:8];
-            b4d2_segments[i] = compressed_data[i*16+:8];
+            b4d2_segments[i] = compressed_data[i*16+:16];
         end
         for(int i = 0; i < 16; i++) begin
             b2d1_segments[i] = compressed_data[i*8+:8];
