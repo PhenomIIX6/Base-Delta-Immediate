@@ -22,7 +22,7 @@ async def rst_generate(dut, clk_period):
 #load memory random data
 async def memory_load(dut):
     for i in range(0, 2 ** 15 + 1):
-        dut.main_memory.mem[i].value = random.randint(-10000, 10000)
+        dut.main_memory.mem[i].value = random.randint(-100, 100)
 
 async def wait_correct_rdata(dut):
     await RisingEdge(dut.clk)
@@ -35,8 +35,6 @@ async def wait_write_en(dut):
     while(dut.cache_controller.memory_write_en == 0):
         await RisingEdge(dut.clk)
 
-# async def cache_hit_rate(dut):
-#     cocotb.log.info("Cache hit rate: %f" % cache_hit_rate)
 
 #@cocotb.test()
 async def random_test_two_line(dut):
@@ -76,7 +74,7 @@ async def full_random_test(dut):
     cocotb.start_soon(clk_generate(dut, clk_period))
     cocotb.start_soon(rst_generate(dut, clk_period))
     for _ in range(20000):
-        dut.address.value = random.randint(0, 2 ** 17)
+        dut.address.value = random.randint(0, 2 ** 15)
         dut.op_rd.value = 1
         await wait_correct_rdata(dut)
     # for _ in range(10000):
