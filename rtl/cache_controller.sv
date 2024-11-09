@@ -25,8 +25,9 @@ module cache_controller
     output logic [3:0]                              read_word_addr, 
     input  logic [9:0]                              read_cacheline_index10,
     output logic [31:0]                             read_base_one_hot,
-    output logic [7:0]                              read_compressed_mode,
+    output logic [7:0]                              read_compressed_mode,                           
 
+    input  logic [2 * DATA_FIELD-1:0]               write_decompressed_data,
     output logic [9:0]                              write_index,
     output logic [2 + TAG_FIELD + DATA_FIELD-1:0]   write_cacheline,
     output logic                                    write_on_demand,
@@ -44,11 +45,15 @@ module cache_controller
     logic [8+32+4-1:0] cache_dir_state [CACHELINE_COUNT-1:0]; // 8 bit for compressor mode, 32 bit for compressor segments, 4 bit counter for LRU
 
     logic [16 * WORD_WIDTH-1:0] two_cacheline;
+    logic [16 * WORD_WIDTH-1:0] write_cacheline_nocompressed;
+    logic write_cacheline_nocompressed_valid;
     logic two_cacheline_data_valid;
     logic [8 * WORD_WIDTH-1:0] compressed_data;
     logic [7:0]                compressed_mode;
     logic [31:0]               base_one_hot;
     logic [1:0]                compressed_valid;
+    
+    logic [16 * WORD_WIDTH-1:0] compressor_input;
 
     logic [3:0] cache_on_demand_read_counter;
     logic [3:0] cache_on_demand_fill_counter;
@@ -80,13 +85,15 @@ module cache_controller
     );
 
     compressor compressor(
-        .cachelines         (two_cacheline      ),
+        .cachelines         (compressor_input   ),
         .request_address    (request_address    ),
         .compressed_data    (compressed_data    ),
         .compressed_mode    (compressed_mode    ),
         .base_one_hot       (base_one_hot       ),
         .compressed_valid   (compressed_valid   )
     );
+
+    assign compressor_input = request_op_read ? two_cacheline : write_cacheline_nocompressed;
 
     always_ff @(posedge clk or negedge rst)  
     begin
@@ -166,20 +173,36 @@ module cache_controller
             memory_write_data   <= request_write_word;
             memory_write_en     <= 1;
             if(read_hit) begin
-                write_cacheline     <= 'h?;
-                write_word_valid    <= 1;
-                write_index         <= read_cacheline_index10;
-                case(read_word_addr)
-                    3'b000: write_cacheline[31:0]       <= request_write_word;
-                    3'b001: write_cacheline[63:32]      <= request_write_word;
-                    3'b010: write_cacheline[95:64]      <= request_write_word;
-                    3'b011: write_cacheline[127:96]     <= request_write_word;
-                    3'b100: write_cacheline[159:128]    <= request_write_word;
-                    3'b101: write_cacheline[191:160]    <= request_write_word;
-                    3'b110: write_cacheline[223:192]    <= request_write_word;
-                    3'b111: write_cacheline[255:224]    <= request_write_word;
-                    default: write_cacheline            <= 'b0;
+                write_cacheline_nocompressed <= write_decompressed_data;
+                write_word_valid             <= 1;
+                write_index                  <= read_cacheline_index10;
+                case(read_word_addr[3:0])
+                    4'b0000: write_cacheline_nocompressed[31:0]       <= request_write_word;
+                    4'b0001: write_cacheline_nocompressed[63:32]      <= request_write_word;
+                    4'b0010: write_cacheline_nocompressed[95:64]      <= request_write_word;
+                    4'b0011: write_cacheline_nocompressed[127:96]     <= request_write_word;
+                    4'b0100: write_cacheline_nocompressed[159:128]    <= request_write_word;
+                    4'b0101: write_cacheline_nocompressed[191:160]    <= request_write_word;
+                    4'b0110: write_cacheline_nocompressed[223:192]    <= request_write_word;
+                    4'b0111: write_cacheline_nocompressed[255:224]    <= request_write_word;
+                    4'b1000: write_cacheline_nocompressed[287:256]    <= request_write_word;
+                    4'b1001: write_cacheline_nocompressed[319:288]    <= request_write_word;
+                    4'b1010: write_cacheline_nocompressed[351:320]    <= request_write_word;
+                    4'b1011: write_cacheline_nocompressed[383:352]    <= request_write_word;
+                    4'b1100: write_cacheline_nocompressed[415:384]    <= request_write_word;
+                    4'b1101: write_cacheline_nocompressed[447:416]    <= request_write_word;
+                    4'b1110: write_cacheline_nocompressed[479:448]    <= request_write_word;
+                    4'b1111: write_cacheline_nocompressed[511:480]    <= request_write_word;
+                    default: write_cacheline_nocompressed             <= 'b0;
                 endcase
+                    write_cacheline_nocompressed_valid <= 1;
+            end 
+            if(write_cacheline_nocompressed_valid) begin
+                write_cacheline[2 + TAG_FIELD + DATA_FIELD-1:TAG_FIELD + DATA_FIELD]    <= compressed_valid;
+                write_cacheline[8 * WORD_WIDTH-1:0]                                     <= compressed_data;
+                cache_dir_state[read_cacheline_index10][8+32+4-1:32+4]                  <= compressed_mode;
+                cache_dir_state[read_cacheline_index10][32+4-1:4]                       <= base_one_hot;
+                write_cacheline_nocompressed_valid <= 0;
             end
         end
     end

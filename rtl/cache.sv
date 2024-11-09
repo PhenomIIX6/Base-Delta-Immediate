@@ -17,6 +17,8 @@ module cache
     input  logic [$clog2(CACHELINE_COUNT)-1:0]      cache_write_index,      // request index of cacheline
     input  logic                                    cache_write_on_demand,
     input  logic                                    cache_write_word_valid,
+    input  logic [WORD_WIDTH-1:0]                   cache_write_word,
+    output logic [2 * DATA_FIELD-1:0]               cache_write_decompressed_data,
 
     // read chan
     input  logic [6:0]                              cache_read_index,       // request index of cacheline inside one way 
@@ -32,7 +34,7 @@ module cache
     logic [2 + TAG_FIELD + DATA_FIELD-1:0] cache_read_cacheline;
     logic [2 + TAG_FIELD + DATA_FIELD-1:0] cache_write_cacheline;
 
-    logic [DATA_FIELD-1:0] decompressed_data;
+    logic [2 * DATA_FIELD-1:0] decompressed_data;
 
     always_comb
     begin
@@ -117,23 +119,32 @@ module cache
         .compressed_cachelines      (cache_read_cacheline[DATA_FIELD-1:0]),
         .compressed_mode            (cache_read_compressed_mode),
         .base_one_hot               (cache_read_base_one_hot),
-        .cacheline_select_signal    (cache_read_word_addr[3]),
         .decompressed_data          (decompressed_data)
     );
+
+    assign cache_write_decompressed_data = decompressed_data;
 
     always_comb 
     begin
         cache_read_word_data = 'b0;
-        case(cache_read_word_addr[2:0]) 
-            3'b000: cache_read_word_data     = decompressed_data[31:0];
-            3'b001: cache_read_word_data     = decompressed_data[63:32];
-            3'b010: cache_read_word_data     = decompressed_data[95:64];
-            3'b011: cache_read_word_data     = decompressed_data[127:96];
-            3'b100: cache_read_word_data     = decompressed_data[159:128];
-            3'b101: cache_read_word_data     = decompressed_data[191:160];
-            3'b110: cache_read_word_data     = decompressed_data[223:192];
-            3'b111: cache_read_word_data     = decompressed_data[255:224];
-            default: cache_read_word_data    = 'b0;
+        case(cache_read_word_addr[3:0]) 
+            4'b0000: cache_read_word_data       = decompressed_data[31:0];
+            4'b0001: cache_read_word_data       = decompressed_data[63:32];
+            4'b0010: cache_read_word_data       = decompressed_data[95:64];
+            4'b0011: cache_read_word_data       = decompressed_data[127:96];
+            4'b0100: cache_read_word_data       = decompressed_data[159:128];
+            4'b0101: cache_read_word_data       = decompressed_data[191:160];
+            4'b0110: cache_read_word_data       = decompressed_data[223:192];
+            4'b0111: cache_read_word_data       = decompressed_data[255:224];
+            4'b1000: cache_read_word_data       = decompressed_data[287:256];
+            4'b1001: cache_read_word_data       = decompressed_data[319:288];
+            4'b1010: cache_read_word_data       = decompressed_data[351:320];
+            4'b1011: cache_read_word_data       = decompressed_data[383:352];
+            4'b1100: cache_read_word_data       = decompressed_data[415:384];
+            4'b1101: cache_read_word_data       = decompressed_data[447:416];
+            4'b1110: cache_read_word_data       = decompressed_data[479:448];
+            4'b1111: cache_read_word_data       = decompressed_data[511:480];
+            default: cache_read_word_data       = 'b0;
         endcase
     end
     

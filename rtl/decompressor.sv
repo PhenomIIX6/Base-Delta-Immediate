@@ -16,9 +16,8 @@ module decompressor
     input  logic [8 * WORD_WIDTH-1:0]   compressed_cachelines,
     input  logic [7:0]                  compressed_mode,
     input  logic [31:0]                 base_one_hot,
-    input  logic                        cacheline_select_signal,
     
-    output logic [8 * WORD_WIDTH-1:0]   decompressed_data
+    output logic [16 * WORD_WIDTH-1:0]  decompressed_data
 );
     logic [8 * WORD_WIDTH-1:0] cacheline_ls_compressed_data;
     logic [3:0]                cacheline_ls_compressed_mode;
@@ -182,6 +181,7 @@ module decompressor
         endcase
     end
     
-    assign decompressed_data = cacheline_select_signal ? cacheline_ms_decompressed_data : cacheline_ls_decompressed_data;
+    assign decompressed_data[8 * WORD_WIDTH-1:0]                = cacheline_ls_decompressed_data;
+    assign decompressed_data[16 * WORD_WIDTH-1:8 * WORD_WIDTH]  = cacheline_ms_decompressed_data;
 
 endmodule 
