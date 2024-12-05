@@ -17,7 +17,7 @@ module main_memory
     output logic                     read_ready,
     output logic                     read_valid
 );
-    logic [WORD_WIDTH-1:0] mem [2 ** 27:0];
+    logic [WORD_WIDTH-1:0] mem [2 ** 20:0];
     logic [WORD_WIDTH-1:0] write_line;
 
     always_comb

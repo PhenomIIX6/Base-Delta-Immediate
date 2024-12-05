@@ -15,26 +15,22 @@ if __name__ == "__main__":
     if hdl_toplevel_lang == "verilog":
         verilog_sources = [proj_path / "rtl" / "cache_controller.sv",
                            proj_path / "rtl" / "cache.sv",
-                           proj_path / "rtl" / "little_compressor.sv",
-                           proj_path / "rtl" / "compressor.sv",
-                           proj_path / "rtl" / "little_decompressor.sv",
-                           proj_path / "rtl" / "decompressor.sv",
                            proj_path / "rtl" / "lru.sv",
                            proj_path / "rtl" / "main_memory.sv",
-                           proj_path / "rtl" / "system_with_compression.sv"]
+                           proj_path / "rtl" / "system_without_compression.sv"]
 
     runner = get_runner(sim)
 
     runner.build(
     verilog_sources = verilog_sources,
     vhdl_sources = vhdl_sources,
-    hdl_toplevel = "system_with_compression",
+    hdl_toplevel = "system_without_compression",
     always = True,
     )
 
     runner.test(
-    hdl_toplevel = "system_with_compression",
-    test_module = "cache_with_compression_test",
+    hdl_toplevel = "system_without_compression",
+    test_module = "cache_without_compression_test",
     waves = True,
     gui = gui,
     )
