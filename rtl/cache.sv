@@ -28,7 +28,8 @@ module cache
     output logic [WORD_WIDTH-1:0]                   cache_read_word_data,
     output logic [9:0]                              cache_read_cacheline_index10,
     input  logic [7:0]                              cache_read_compressed_mode,
-    input  logic [31:0]                             cache_read_base_one_hot
+    input  logic [31:0]                             cache_read_base_one_hot,
+    output logic [1:0]                              cache_read_cacheline_valid_bits
 );
     logic [2 + TAG_FIELD + DATA_FIELD-1:0] cache [CACHELINE_COUNT-1:0];
     logic [2 + TAG_FIELD + DATA_FIELD-1:0] cache_read_cacheline;
@@ -152,4 +153,5 @@ module cache
                                     (cache_read_cacheline[1 + TAG_FIELD + DATA_FIELD-1] == 1 & !cache_read_word_addr[3]) |
                                     (cache_read_cacheline[2 + TAG_FIELD + DATA_FIELD-1] == 1 & cache_read_word_addr[3]) );
     
+    assign cache_read_cacheline_valid_bits = {cache_read_cacheline[2 + TAG_FIELD + DATA_FIELD-1], cache_read_cacheline[1 + TAG_FIELD + DATA_FIELD-1]};
 endmodule

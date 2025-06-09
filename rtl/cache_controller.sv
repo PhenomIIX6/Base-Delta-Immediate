@@ -23,9 +23,10 @@ module cache_controller
     output logic [TAG_FIELD-1:0]                    read_tag,
     output logic [6:0]                              read_index,
     output logic [3:0]                              read_word_addr, 
+    input  logic [1:0]                              read_valid_bits,
     input  logic [9:0]                              read_cacheline_index10,
     output logic [31:0]                             read_base_one_hot,
-    output logic [7:0]                              read_compressed_mode,                           
+    output logic [7:0]                              read_compressed_mode,                      
 
     input  logic [2 * DATA_FIELD-1:0]               write_decompressed_data,
     output logic [9:0]                              write_index,
@@ -46,12 +47,13 @@ module cache_controller
 
     logic [16 * WORD_WIDTH-1:0] two_cacheline;
     logic [16 * WORD_WIDTH-1:0] write_cacheline_nocompressed;
-    logic write_cacheline_nocompressed_valid;
-    logic two_cacheline_data_valid;
-    logic [8 * WORD_WIDTH-1:0] compressed_data;
-    logic [7:0]                compressed_mode;
-    logic [31:0]               base_one_hot;
-    logic [1:0]                compressed_valid;
+    logic                       write_cacheline_nocompressed_valid;
+    logic                       two_cacheline_data_valid;
+    logic                       decompressor_out_valid;
+    logic [8 * WORD_WIDTH-1:0]  compressed_data;
+    logic [7:0]                 compressed_mode;
+    logic [31:0]                base_one_hot;
+    logic [1:0]                 compressed_valid;
     
     logic [16 * WORD_WIDTH-1:0] compressor_input;
 
@@ -105,7 +107,9 @@ module cache_controller
             memory_read_addr_valid       <= 'b0;
             write_word_valid             <= 'b0;
             cache_hit_stall              <= 'b0;
-            two_cacheline_data_valid     <= 0;
+            two_cacheline_data_valid     <= 'b0;
+            write_cacheline_nocompressed_valid <= 'b0;
+            decompressor_out_valid       <= 'b0;
         end
         else if(request_op_read & read_hit ) begin
             request_read_word               <= read_word;
@@ -117,6 +121,7 @@ module cache_controller
             write_word_valid                <= 0;
             cache_hit_stall                 <= 0;
             two_cacheline_data_valid        <= 0;
+            decompressor_out_valid          <= 0;
         end
         else if(two_cacheline_data_valid) begin
             write_on_demand             <= 1;
@@ -166,16 +171,26 @@ module cache_controller
                 cache_on_demand_fill_counter <= cache_on_demand_fill_counter + 1;
             end
         end
-        else if(!request_op_read) begin
-            cache_hit_stall     <= read_hit;
+        else if(!request_op_read & !read_hit) begin
+            cache_hit_stall     <= 0;
             write_on_demand     <= 0;
             memory_addr         <= request_address >> 2; 
             memory_write_data   <= request_write_word;
             memory_write_en     <= 1;
-            if(read_hit) begin
-                write_cacheline_nocompressed <= write_decompressed_data;
-                write_word_valid             <= 1;
-                write_index                  <= read_cacheline_index10;
+        end
+        else if(write_word_valid) begin
+            decompressor_out_valid                  <= 0;
+            memory_write_en                         <= 0;
+            write_cacheline_nocompressed_valid      <= 0;
+            write_word_valid                        <= 0;
+        end
+        else if(!request_op_read) begin
+            cache_hit_stall                 <= 1;
+            write_on_demand                 <= 0;
+            write_cacheline_nocompressed    <= write_decompressed_data;
+            decompressor_out_valid          <= 1;
+            write_index                     <= read_cacheline_index10;
+            if(decompressor_out_valid) begin
                 case(read_word_addr[3:0])
                     4'b0000: write_cacheline_nocompressed[31:0]       <= request_write_word;
                     4'b0001: write_cacheline_nocompressed[63:32]      <= request_write_word;
@@ -195,14 +210,17 @@ module cache_controller
                     4'b1111: write_cacheline_nocompressed[511:480]    <= request_write_word;
                     default: write_cacheline_nocompressed             <= 'b0;
                 endcase
-                    write_cacheline_nocompressed_valid <= 1;
-            end 
+                write_cacheline_nocompressed_valid                    <= 1;
+            end
             if(write_cacheline_nocompressed_valid) begin
-                write_cacheline[2 + TAG_FIELD + DATA_FIELD-1:TAG_FIELD + DATA_FIELD]    <= compressed_valid;
+                write_cacheline[2 + TAG_FIELD + DATA_FIELD-1:TAG_FIELD + DATA_FIELD]    <= compressed_valid & read_valid_bits;
                 write_cacheline[8 * WORD_WIDTH-1:0]                                     <= compressed_data;
                 cache_dir_state[read_cacheline_index10][8+32+4-1:32+4]                  <= compressed_mode;
                 cache_dir_state[read_cacheline_index10][32+4-1:4]                       <= base_one_hot;
-                write_cacheline_nocompressed_valid <= 0;
+                write_word_valid                                                        <= 1;
+                memory_addr                                                             <= request_address >> 2; 
+                memory_write_data                                                       <= request_write_word;
+                memory_write_en                                                         <= 1;
             end
         end
     end

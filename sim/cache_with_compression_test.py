@@ -2,9 +2,11 @@ import cocotb
 from pathlib import Path
 from cocotb.triggers import Timer, RisingEdge
 import random
+from spike_parser import *
 
-clk_period = 10
+clk_period = 10 
 compression_ratio = 0
+spike_log_path = Path(__file__).resolve().parent / "spike_log.log"
 
 #clock generate
 async def clk_generate(dut, clk_period):
@@ -21,12 +23,12 @@ async def rst_generate(dut, clk_period):
     dut.rst.value = 1
 
 #load memory random data
-async def memory_load(dut):
+async def memory_random_load(dut):
     for i in range(65536):
         if random.randint(1, 100) > 50:
             dut.main_memory.mem[i].value = random.randint(0, 16)
         else:
-            dut.main_memory.mem[i].value = random.randint(0, 1000) / random.randint(1, 1000)
+            dut.main_memory.mem[i].value = random.randint(0, 1000)
 
 async def wait_correct_rdata(dut):
     await RisingEdge(dut.clk)
@@ -39,10 +41,20 @@ async def wait_write_en(dut):
     while(dut.cache_controller.memory_write_en == 0):
         await RisingEdge(dut.clk)
 
+async def compression_ratio(dut):
+    compression_count = 0
+    total_cacheline = 0
+    for i in range(1024):
+        if (dut.cache.cache.value[i])[0] == 1 and (dut.cache.cache.value[i])[1] == 1:
+            compression_count += 1
+        if (dut.cache.cache.value[i])[0] == 1 and (dut.cache.cache.value[i])[1] == 1:
+            total_cacheline += 1
+    compression_rate = compression_ratio / compression_count
+    return compression_rate
 
 # @cocotb.test()
 # async def random_test_two_line(dut):
-#     await memory_load(dut)
+#     await memory_random_load(dut)
 #     cocotb.start_soon(clk_generate(dut, clk_period))
 #     cocotb.start_soon(rst_generate(dut, clk_period))
 #     for _ in range(600):
@@ -73,15 +85,9 @@ async def wait_write_en(dut):
 #         await RisingEdge(dut.clk)
 #         await RisingEdge(dut.clk)
 
-# async def compression_ratio(dut):
-#     for i in range(1024):
-#         if (dut.cache.cache[i].value % 2 + 19 + 32 * 8) == ((dut.cache.cache[i].value % 2 + 19 + 32 * 8 - 1) // 10) == 1:
-#             compression_ratio += 1
-#         dut._log.info(f"{compression_ratio}")
-
 # @cocotb.test()
 # async def full_random_test(dut):
-#     await memory_load(dut)
+#     await memory_random_load(dut)
 #     cocotb.start_soon(clk_generate(dut, clk_period))
 #     cocotb.start_soon(rst_generate(dut, clk_period))
 #     for i in range(10000):
@@ -97,19 +103,27 @@ async def wait_write_en(dut):
 #         dut.address.value = i
 #         dut.op_rd.value = 1
 #         await wait_correct_rdata(dut)
+#     for i in range(20, 10000):
+#         dut.address.value = i + random.randint(-10, 10)
+#         dut.wdata.value = i * 3
+#         dut.op_rd.value = 0
+#         await wait_write_en(dut)
+#         dut.address.value = i + random.randint(-10, 10)
+#         dut.op_rd.value = 1
+#         await wait_correct_rdata(dut)
 
-@cocotb.test()
+@cocotb.test() 
 async def real_test(dut):
-    await memory_load(dut)
     cocotb.start_soon(clk_generate(dut, clk_period))
     cocotb.start_soon(rst_generate(dut, clk_period))
-    for i in range(10000):
-        dut.op_rd.value = 1
-        dut.address.value = i
-        if random.randint(1, 100) > 80:
-            dut.address.value = random.randint(0, 2 ** 15)
+    parsed = parse_spike_log_file(spike_log_path)
+    for entry in parsed:
+        dut.address.value = entry['address'] % (2**27)
+        if entry['comand'] == 'sw':
+            dut.op_rd.value = 0
+            dut.wdata.value = entry['value']
+            await wait_write_en(dut)
         else:
-            dut.address.value = i
-        await RisingEdge(dut.clk)
-        while(dut.cache_hit.value == 0):
-            await RisingEdge(dut.clk)
+            dut.op_rd.value = 1
+            await wait_correct_rdata(dut)
+    print(compression_ratio(dut))

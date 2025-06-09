@@ -28,7 +28,7 @@ module main_memory
         end
     end
 
-    always_ff @(posedge clk, negedge rst)
+    always @(posedge clk, negedge rst)
     begin
         if(!rst) begin
             read_ready <= 0;
@@ -47,6 +47,17 @@ module main_memory
                 read_ready <= 0;
             end 
             else read_valid <= 0;
+        end
+    end
+
+    integer i, j;
+    initial begin
+        // two nested loops for smaller number of iterations per loop
+        // workaround for synthesizer complaints about large loop counts
+        for (i = 0; i < 2**27; i = i + 2**(27/2)) begin
+            for (j = i; j < i + 2**(27/2); j = j + 1) begin
+                mem[j] = 0;
+            end
         end
     end
 

@@ -1,0 +1,12 @@
+#!/usr/bin/expect -f
+set timeout -1
+spawn spike --isa=rv32i -d test
+set CHECK 0
+expect -- "(spike)"
+while { $CHECK < 1000 } {
+    send -- "\r"    
+    send -- "reg 0\r"
+    set CHECK [expr $CHECK + 1]
+}
+send -- "quit\r"
+expect eof

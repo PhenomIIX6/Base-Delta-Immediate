@@ -29,6 +29,7 @@ module system_with_compression
     logic [31:0] read_base_one_hot;
     logic [7:0] read_compressed_mode;
     logic [511:0] write_decompressed_data;
+    logic [1:0] read_valid_bits;
 
     cache cache (
         .clk                        (clk                    ),
@@ -46,7 +47,8 @@ module system_with_compression
         .cache_read_word_data       (read_word              ),
         .cache_read_cacheline_index10(cache_read_cacheline_index10),
         .cache_read_base_one_hot    (read_base_one_hot      ),
-        .cache_read_compressed_mode (read_compressed_mode   )        
+        .cache_read_compressed_mode (read_compressed_mode   ),
+        .cache_read_cacheline_valid_bits(read_valid_bits) 
     );
 
     cache_controller cache_controller (
@@ -65,6 +67,7 @@ module system_with_compression
         .read_cacheline_index10     (cache_read_cacheline_index10),
         .read_compressed_mode       (read_compressed_mode),
         .read_base_one_hot          (read_base_one_hot  ),
+        .read_valid_bits            (read_valid_bits    ),
         .write_index                (write_index        ),
         .write_cacheline            (write_cacheline    ),
         .write_on_demand            (write_on_demand    ),
